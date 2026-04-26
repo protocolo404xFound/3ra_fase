@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Mundo Móvil</title>
+    <link rel="stylesheet" href="admin_style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Panel de Control</h1>
+        <nav><a href="index.html">← Volver al Catálogo</a></nav>
+    </header>
+
+    <main>
+        <section class="form-container">
+            <h3 id="form-title">Registrar Nuevo Equipo</h3> 
+            <form id="phone-form">
+                <input type="text" id="model-name" placeholder="Nombre del modelo" required>
+                <textarea id="description" placeholder="Descripción" rows="3" required></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="price" placeholder="Precio ($)" required style="flex:1">
+                    <input type="number" id="stock" placeholder="Stock" required style="flex:1">
+                </div>
+                <div class="image-upload-zone">
+                    <input type="text" id="img-url" placeholder="URL de imagen">
+                    <p>ó</p>
+                    <input type="file" id="img-file" accept="image/*">
+                </div>
+                <button type="submit" id="submit-btn">Guardar en Catálogo</button>
+            </form>
+        </section>
+
+        <section class="inventory-section">
+            <div id="search-container"></div>
+            <div class="grid" id="product-grid"></div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
