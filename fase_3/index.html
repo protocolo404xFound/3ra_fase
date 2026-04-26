@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundo Móvil - Catálogo Profesional</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Mundo Móvil</h1>
+        <nav><a href="admin.html">Administrar Tienda</a></nav>
+    </header>
+
+    <main id="catalog">
+        <div id="product-grid" class="grid"></div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <h3>Contáctanos</h3>
+                <ul>
+                    <li><a href="https://braleycedeno03-dot.github.io/portafolio/" target="_blank">Braley</a></li>
+                    <li><a href="https://protocolo404xfound.github.io/mi-portafolio/" target="_blank">Jorge</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Más proyectos</h3>
+                <ul>
+                    <li><a href="https://protocolo404xfound.github.io/proyecto_protocolo_404/" target="_blank">Número secreto</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <div id="modal-compra" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Finalizar Compra</h2>
+            <p id="info-producto" style="color: #38bdf8; margin-bottom: 5px; font-weight: bold;"></p>
+            <p id="stock-disponible" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px;"></p>
+            
+            <form id="form-pedido">
+                <input type="text" id="cliente-nombre" placeholder="Nombre completo" required>
+                <input type="text" id="cliente-id" placeholder="Documento de Identidad" required>
+                
+                <div class="input-group">
+                    <label>Cantidad:</label>
+                    <input type="number" id="compra-cantidad" value="1" min="1" required>
+                </div>
+
+                <select id="provincia" required>
+                    <option value="" disabled selected>Seleccione su Provincia</option>
+                </select>
+
+                <input list="municipios-list" id="cliente-ubicacion" placeholder="Municipio" required>
+                <datalist id="municipios-list"></datalist>
+                
+                <select id="metodo-pago" required>
+                    <option value="" disabled selected>Método de Pago</option>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="digital">Pago Digital (Tarjeta)</option>
+                </select>
+
+                <div id="datos-tarjeta">
+                    <input type="text" id="num-tarjeta" placeholder="Número de tarjeta (16 dígitos)" maxlength="16" inputmode="numeric">
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <input type="text" id="fecha-venc" placeholder="MM/YY" maxlength="5" inputmode="numeric">
+                        <input type="text" id="cvc" placeholder="CVC" maxlength="3" inputmode="numeric">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-confirmar">Confirmar Pedido</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const productGrid = document.getElementById('product-grid');
+        const modal = document.getElementById('modal-compra');
+        const closeBtn = document.querySelector('.close-btn');
+        const formPedido = document.getElementById('form-pedido');
+        const metodoPago = document.getElementById('metodo-pago');
+        const datosTarjeta = document.getElementById('datos-tarjeta');
+        let productoActual = null;
+
+        const datosRD = {
+            "Distrito Nacional": ["Santo Domingo de Guzmán"],
+            "Santo Domingo": ["Santo Domingo Este", "Santo Domingo Oeste", "Santo Domingo Norte", "Boca Chica"],
+            "Santiago": ["Santiago de los Caballeros", "Baitoa", "Jánico"],
+            "La Altagracia": ["Higüey", "Punta Cana"],
+            "La Romana": ["La Romana", "Villa Hermosa"]
+        };
+
+        function loadProducts() {
+            const products = JSON.parse(localStorage.getItem('celulares')) || [];
+            productGrid.innerHTML = ""; 
+            products.forEach(p => {
+                const esAgotado = parseInt(p.stock) <= 0;
+                const card = document.createElement('div');
+                card.classList.add('card');
+                if(esAgotado) card.classList.add('agotado');
+                card.onclick = esAgotado ? null : () => abrirModal(p);
+                card.innerHTML = `
+                    <img src="${p.imgSrc}" alt="${p.model}">
+                    <h3>${p.model}</h3>
+                    <p>${p.desc}</p>
+                    <span class="price">$${Number(p.price).toLocaleString()}</span>
+                    ${esAgotado ? '<span class="badge-agotado">PRODUCTO AGOTADO</span>' : `<span class="stock-info">Disponibles: ${p.stock}</span>`}
+                `;
+                productGrid.appendChild(card);
+            });
+        }
+
+        function abrirModal(producto) {
+            productoActual = producto;
+            document.getElementById('info-producto').innerText = "Equipo: " + producto.model;
+            document.getElementById('stock-disponible').innerText = `Stock disponible: ${producto.stock} unidades`;
+            document.getElementById('compra-cantidad').max = producto.stock;
+            modal.style.display = "flex";
+        }
+
+        metodoPago.addEventListener('change', function() {
+            datosTarjeta.style.display = (this.value === 'digital') ? 'flex' : 'none';
+        });
+
+        document.getElementById('fecha-venc').addEventListener('input', function() {
+            let v = this.value.replace(/\D/g, '');
+            if (v.length >= 2) this.value = v.slice(0, 2) + '/' + v.slice(2, 4);
+        });
+
+        formPedido.onsubmit = (e) => {
+            e.preventDefault();
+            const cantidadComprada = parseInt(document.getElementById('compra-cantidad').value);
+            let productos = JSON.parse(localStorage.getItem('celulares'));
+            const index = productos.findIndex(p => p.id === productoActual.id);
+            productos[index].stock -= cantidadComprada;
+            localStorage.setItem('celulares', JSON.stringify(productos));
+            alert(`¡Pedido confirmado! Reservadas ${cantidadComprada} unidad(es).`);
+            modal.style.display = "none";
+            formPedido.reset();
+            datosTarjeta.style.display = 'none';
+            loadProducts();
+        };
+
+        const provinciaSelect = document.getElementById('provincia');
+        Object.keys(datosRD).forEach(prov => {
+            const opt = document.createElement('option');
+            opt.value = prov; opt.textContent = prov;
+            provinciaSelect.appendChild(opt);
+        });
+
+        provinciaSelect.onchange = function() {
+            const dl = document.getElementById('municipios-list');
+            dl.innerHTML = "";
+            datosRD[this.value].forEach(m => {
+                const o = document.createElement('option'); o.value = m;
+                dl.appendChild(o);
+            });
+        };
+
+        closeBtn.onclick = () => modal.style.display = "none";
+        window.onload = loadProducts;
+    </script>
+</body>
+</html>
